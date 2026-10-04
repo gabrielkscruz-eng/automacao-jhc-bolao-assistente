@@ -1,0 +1,118 @@
+{
+  "name": "Chamar_jorge",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "id_chat"
+            },
+            {
+              "name": "Nome"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8dc6e637-08fd-458e-8310-2d1fcdf8de2c",
+      "name": "Chamar_jorge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Roezvo-3sBqxqAj6XCplafxDvu4qMSrFi_-NtF-niXI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Roezvo-3sBqxqAj6XCplafxDvu4qMSrFi_-NtF-niXI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_chat": "={{ $('Chamar_jorge').item.json.id_chat }}",
+            "nome": "={{ $json.Nome }}"
+          },
+          "matchingColumns": [
+            "id_chat"
+          ],
+          "schema": [
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id_chat",
+              "displayName": "id_chat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "id": "17169c18-d941-4ba7-8b5d-aaa5b58d2518",
+      "name": "Adicona o numero do usuario a lista de espera",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chamar_jorge": {
+      "main": [
+        [
+          {
+            "node": "Adicona o numero do usuario a lista de espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1340ef57-88f2-4e1a-99aa-ac11f4ae226d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "4GLb8ucPZBXhGMux",
+  "tags": []
+}

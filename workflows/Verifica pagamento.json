@@ -1,0 +1,2588 @@
+{
+  "name": "Verifica pagamento",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pagamento_bolao",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2016,
+        672
+      ],
+      "id": "ca96288d-9a82-4995-a1de-bdc8b4c00693",
+      "name": "Webhook",
+      "webhookId": "cefe13b4-5b40-44ff-86d2-8cc9541e367b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "028032a6-e5fa-4d0b-9837-ef469ffedfe4",
+              "leftValue": "={{ $json.body.api_version }}",
+              "rightValue": "v1",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "b249d541-2a7e-4420-9f82-ba48589efe9e",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "payment",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1792,
+        672
+      ],
+      "id": "bd2d6378-5562-4e0c-b5be-92956b5f3c11",
+      "name": "Filtro"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mercadopago.com/v1/payments/{{ $json.body.data.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1568,
+        672
+      ],
+      "id": "0de3e4ae-7d8c-445e-95af-39c9076f3328",
+      "name": "Paga as informações do pagamento no banco",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "n9eO0UCRIoAH5Brk",
+          "name": "GABRIEL MERCADO PAG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit?gid=0#gid=0",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pagamentos pedentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id_interno",
+              "lookupValue": "={{ $json.external_reference }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        672
+      ],
+      "id": "517f7140-1ceb-48f9-a093-6938beaddc1a",
+      "name": "Pega informações do cliente",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2afb2566-2255-4564-9b2d-80ccde543e12",
+              "name": "valor",
+              "value": "={{ $json.valor }}",
+              "type": "string"
+            },
+            {
+              "id": "4d2cae47-5f3b-420d-a47f-3e6b2ef5f0ee",
+              "name": "id_interno",
+              "value": "={{ $json.id_interno }}",
+              "type": "string"
+            },
+            {
+              "id": "abd12b5b-8657-4aaf-bba2-29b22993ceba",
+              "name": "=Valor a ser pago",
+              "value": "={{ $('Paga as informações do pagamento no banco').item.json.transaction_amount }}",
+              "type": "string"
+            },
+            {
+              "id": "406cc8fc-dc98-4691-bd2f-5ccb226959c2",
+              "name": "rembolso",
+              "value": "={{ $('Paga as informações do pagamento no banco').item.json.transaction_amount_refunded }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        672
+      ],
+      "id": "4237da72-d5f9-4757-a7e8-24a10b63cba4",
+      "name": "Define os tipos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f7206db7-a8ad-4565-9df3-4f21de5756d0",
+              "leftValue": "={{ $json.id_interno }}",
+              "rightValue": "={{ $('Paga as informações do pagamento no banco').item.json.external_reference }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "9129dd89-e0ee-4835-8f88-ea2d06362dda",
+              "leftValue": "={{ $json.valor }}",
+              "rightValue": "={{ $json['Valor a ser pago'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "35941a34-752a-48dd-b984-25e1fcb4bde2",
+              "leftValue": "={{ $('Paga as informações do pagamento no banco').item.json.currency_id }}",
+              "rightValue": "BRL",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "07ce033e-ec18-4700-98c4-dfbd5b5e8a52",
+              "leftValue": "={{ $json.rembolso }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "e40bbf56-9739-4ff7-987f-5c4b4e0d837a",
+              "leftValue": "={{ $('Paga as informações do pagamento no banco').item.json.status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "e470a23e-54f7-4d56-b0d9-ae706691131a",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "Pendente",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        672
+      ],
+      "id": "f9be7405-a4d1-4f79-be8c-de52802fdba4",
+      "name": "Verifica se as informações estão corretas"
+    },
+    {
+      "parameters": {
+        "chatId": "8412613168",
+        "text": "=Notificação de atualização das Tabelas:\n{{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        -224
+      ],
+      "id": "bb68652c-568f-4573-9681-36ddf4de9206",
+      "name": "manda messagem para o dono",
+      "webhookId": "80b49cc7-1943-49da-8998-ce4e5218537f",
+      "credentials": {
+        "telegramApi": {
+          "id": "8H2JWG8CElFbFmIq",
+          "name": "Notifica sobre as tabelas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let mensagemFinal = items\n  .map(item => item.json.mensagem)\n  .join(\"\\n\\n\");\n\nreturn [\n  {\n    json: {\n      output: mensagemFinal\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -224
+      ],
+      "id": "c99b3eb7-4450-44fd-84ca-d96f05ffc8b4",
+      "name": "Junta todas as messagens da IA"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const nome = item.json.nome;\n  const numero = item.json.numero;\n  const jogo = item.json.jogos;\n\n  return {\n    json: {\n      nome: nome,\n      numero: numero,\n      cotas: jogo.quantidade_cotas,\n      valor: jogo.subtotal,\n      link_tabela: jogo.link_tabela, // necessário para o node acessar a planilha\n      \"nome_do_jogo\": jogo.nome_jogo,\n      nomefolha:\"Página1\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        256
+      ],
+      "id": "a9a4144a-ad61-4db5-bc8f-04bbee9bc8c8",
+      "name": "Separa as info para AI"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        432
+      ],
+      "id": "5a24f06b-a49b-44af-9ba0-7109cb6ebc06",
+      "name": "Loop itens"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pagamentos pedentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "Pago",
+            "id_interno": "={{ $('Verifica se as informações estão corretas').item.json.id_interno }}"
+          },
+          "matchingColumns": [
+            "id_interno"
+          ],
+          "schema": [
+            {
+              "id": "id_interno",
+              "displayName": "id_interno",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id_pagamento",
+              "displayName": "id_pagamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "id_chat",
+              "displayName": "id_chat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "numero",
+              "displayName": "numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "jogos",
+              "displayName": "jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dia_criado",
+              "displayName": "dia_criado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "dia_expira",
+              "displayName": "dia_expira",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -224,
+        240
+      ],
+      "id": "585920d7-04c4-45ce-b8a3-884be80c7b58",
+      "name": "Atualiza Para pago",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputArray = items.map(i => i.json);\n\nconst mapa = {};\n\n// percorre cada objeto do array\nfor (const obj of inputArray) {\n  const nome = obj.nome;\n\n  if (!mapa[nome]) {\n    // cria novo objeto\n    mapa[nome] = { ...obj };\n  } else {\n    // soma apenas cotas e valor\n    mapa[nome].cotas += obj.cotas || 0;\n    mapa[nome].valor += obj.valor || 0;\n    \n    // adiciona os outros campos que ainda não existem\n    for (const key of Object.keys(obj)) {\n      if (!(key in mapa[nome])) {\n        mapa[nome][key] = obj[key];\n      }\n    }\n  }\n}\n\n// transforma de volta em array para n8n\nreturn Object.values(mapa).map(obj => ({ json: obj }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        352
+      ],
+      "id": "68221118-7cf8-4588-8fa0-8aa26d501874",
+      "name": "Soma os campos iguais"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        352
+      ],
+      "id": "20cf1d62-1fe1-4db2-b854-1d6e3838926a",
+      "name": "Junta em unico fluxo",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.link_tabela }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.nomefolha }}",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "CELULAR",
+              "lookupValue": "={{ $json.numero }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        256
+      ],
+      "id": "ee85da8d-061d-482d-beef-96dd278216f0",
+      "name": "Verifica se tem alguma cota",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Soma os campos iguais').item.json.link_tabela }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Soma os campos iguais').item.json.link_tabela }}",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "CELULAR"
+          ],
+          "schema": [
+            {
+              "id": "0 APOSTADOR",
+              "displayName": "0 APOSTADOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CELULAR",
+              "displayName": "CELULAR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cotas",
+              "displayName": "cotas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        352
+      ],
+      "id": "5d97a787-0094-48bf-aa52-4e7d45fee414",
+      "name": "Atualiza ou add cota",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "jogos",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "nome, numero",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        768
+      ],
+      "id": "33c16fd6-7cd5-4cfd-ad36-c4df00444c80",
+      "name": "Separa info  da AI"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bae8a30a-7e7e-421f-8139-fcca0d5e73e2",
+              "name": "nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "07680de1-a7d2-4073-92f1-b0203a0e830d",
+              "name": "numero",
+              "value": "={{ $json.numero }}",
+              "type": "number"
+            },
+            {
+              "id": "073374ad-981f-4d0f-a7a8-d08834648880",
+              "name": "jogos",
+              "value": "={{ $json.jogos }}",
+              "type": "array"
+            },
+            {
+              "id": "f9af0c1d-03eb-4bad-98fe-ef458cfba7a8",
+              "name": "id_chat",
+              "value": "={{ $json.id_chat }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        672
+      ],
+      "id": "06f8d465-1cca-4121-bb37-60470af07f5b",
+      "name": "Organiza as info  da AI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "afe634b2-3d60-4ea0-b9c7-e357ce72203c",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        352
+      ],
+      "id": "cab19631-06ce-42a6-9062-ba0f2b1f33c8",
+      "name": "Verifica se deu erro"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a0d5f088-1b42-4041-9412-78d883ea1466",
+              "leftValue": "={{ $json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "972f05d2-557a-422e-a24b-381eb827cb82",
+              "leftValue": "={{ $json.CELULAR }}",
+              "rightValue": "={{ $('Separa as info para AI').item.json.numero }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        256
+      ],
+      "id": "932aff0e-a8ae-42f0-8425-9f0d23c5f70d",
+      "name": "Verifica o verifica"
+    },
+    {
+      "parameters": {
+        "jsCode": "// pega o primeiro (e único) objeto do array de entrada\nconst data = items[0].json;\n\n// monta a mensagem\nconst mensagem = `\n✅ TABELA ATUALIZADA COM SUCESSO\n\nJogo: ${data.nome_do_jogo || 'N/A'}\n\nNome: ${data.nome}\nNúmero: ${data.numero}\n\nCotas adicionadas nesta operação: ${data.cotas}\nValor adicionado nesta operação: R$ ${data.valor}\n\nLink da tabela:\n${data.link_tabela || 'N/A'}\n`;\n\n// retorna no formato do n8n\nreturn [\n  {\n    json: {\n      mensagem\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        688
+      ],
+      "id": "b7a60966-e9e8-454e-a30a-965049263097",
+      "name": "Gera a messagem de sucesso para o dono"
+    },
+    {
+      "parameters": {
+        "jsCode": "// pega o primeiro item do input\nconst data = items[0].json;\n\n// monta a mensagem de erro\nconst mensagem = `\n❌ ERRO AO ATUALIZAR TABELA\n\nJogo: ${data.nome_do_jogo || 'N/A'}\n\nNome: ${data.nome}\nNúmero: ${data.numero}\n\nCotas que não foram adicionadas nesta operação: ${data.cotas}\nValor que não foi adicionado nesta operação: R$ ${data.valor}\n\nLink da tabela:\n${data.link_tabela || 'N/A'}\n`;\n\n// retorna no formato do n8n\nreturn [\n  {\n    json: {\n      mensagem\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        496
+      ],
+      "id": "7effe876-296f-4900-aa41-4597d24eaeb1",
+      "name": "Gera a messagem erro para o dono"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "075895ed-c960-434f-824c-6df36b95ba87",
+              "name": "nome",
+              "value": "={{ $('Soma os campos iguais').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "96da3ff3-b157-425e-9e25-41a64fd20326",
+              "name": "numero",
+              "value": "={{ $('Soma os campos iguais').item.json.numero }}",
+              "type": "number"
+            },
+            {
+              "id": "471916ca-69bd-49f5-ab3e-be4b56f6e11a",
+              "name": "cotas",
+              "value": "={{ $('Soma os campos iguais').item.json.cotas }}",
+              "type": "number"
+            },
+            {
+              "id": "5ddd16ae-eb68-4897-b607-d422742ceb6c",
+              "name": "valor",
+              "value": "={{ $('Soma os campos iguais').item.json.valor }}",
+              "type": "number"
+            },
+            {
+              "id": "8b59891a-04df-4bc1-a919-cf1981362cf6",
+              "name": "link_tabela",
+              "value": "={{ $('Soma os campos iguais').item.json.link_tabela }}",
+              "type": "string"
+            },
+            {
+              "id": "6bf5f5d1-2f79-4e85-bc1b-fce0e87f774e",
+              "name": "nome_do_jogo",
+              "value": "={{ $('Soma os campos iguais').item.json.nome_do_jogo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        64
+      ],
+      "id": "e1a36a40-df9c-4091-9c57-f5cd0d1a0ec4",
+      "name": "Organiza as informação para messagem de erro"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aa00e7a1-6a65-4bea-9159-dfb5b78913c8",
+              "name": "0 APOSTADOR",
+              "value": "={{ $json['0 APOSTADOR'] }}",
+              "type": "string"
+            },
+            {
+              "id": "31c75ff7-76bd-40b9-869f-93915ee2065f",
+              "name": "CELULAR",
+              "value": "={{ $json.CELULAR }}",
+              "type": "number"
+            },
+            {
+              "id": "249c0bcf-53f9-4d6a-a78d-56c16cfaee89",
+              "name": "cotas",
+              "value": "={{ $json.cotas }}",
+              "type": "number"
+            },
+            {
+              "id": "c035f293-6754-4c39-9cbb-cc8c38ed5866",
+              "name": "valor",
+              "value": "={{ $json.valor }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        352
+      ],
+      "id": "fe4b9e31-8a42-4615-bcee-54ba9accffa1",
+      "name": "Oragniza as info para a planilha"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "075895ed-c960-434f-824c-6df36b95ba87",
+              "name": "nome",
+              "value": "={{ $json['0 APOSTADOR'] }}",
+              "type": "string"
+            },
+            {
+              "id": "96da3ff3-b157-425e-9e25-41a64fd20326",
+              "name": "numero",
+              "value": "={{ $json.CELULAR }}",
+              "type": "number"
+            },
+            {
+              "id": "471916ca-69bd-49f5-ab3e-be4b56f6e11a",
+              "name": "cotas",
+              "value": "={{ $('Soma os campos iguais').item.json.cotas }}",
+              "type": "number"
+            },
+            {
+              "id": "5ddd16ae-eb68-4897-b607-d422742ceb6c",
+              "name": "valor",
+              "value": "={{ $('Soma os campos iguais').item.json.valor }}",
+              "type": "number"
+            },
+            {
+              "id": "8b59891a-04df-4bc1-a919-cf1981362cf6",
+              "name": "link_tabela",
+              "value": "={{ $('Soma os campos iguais').item.json.link_tabela }}",
+              "type": "string"
+            },
+            {
+              "id": "6bf5f5d1-2f79-4e85-bc1b-fce0e87f774e",
+              "name": "nome_do_jogo",
+              "value": "={{ $('Soma os campos iguais').item.json.nome_do_jogo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        448
+      ],
+      "id": "ae19bf29-1de0-435d-903a-645eadc0b7fd",
+      "name": "Organiza as informação para messagem de erro1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "nome_jogo",
+              "lookupValue": "={{ $json.jogos.nome_jogo }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        1024
+      ],
+      "id": "d7974a05-d51e-43ee-be40-9fc9a3e1817e",
+      "name": "Pega informação da tabela de jogos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2d57c93a-596b-4978-8192-390eb0e9b2b5",
+              "name": "quant_atual",
+              "value": "={{$json[\"quant_atual\"].toNumber() + $('Loop itens1').item.json.jogos.quantidade_cotas}}",
+              "type": "number"
+            },
+            {
+              "id": "429a0ca6-2b16-4ee5-b2fd-1f5cf307275c",
+              "name": "quant_max",
+              "value": "={{ $json.quant_max }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        1072
+      ],
+      "id": "709c3f62-ff97-4f12-90c8-75974cd38a86",
+      "name": "Soma as cotas adicionada"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "17f646a7-8184-40d7-a8b8-ad4b142db2b9",
+              "leftValue": "={{ $json.quant_max }}",
+              "rightValue": "={{ $json.quant_atual }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        1024
+      ],
+      "id": "5d20de46-96ea-4197-b7e9-128320ff0258",
+      "name": "Verifica se alcançou o limite"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fda6398a-6a3c-4e6d-8ee4-a1e72be07f16",
+              "name": "quant_max",
+              "value": "={{ $json.quant_max }}",
+              "type": "string"
+            },
+            {
+              "id": "564b4035-be16-4465-99a7-1deed450178e",
+              "name": "quant_atual",
+              "value": "={{ $json.quant_atual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1024
+      ],
+      "id": "c211a39b-aaa2-4e4f-8f21-10f1811f9727",
+      "name": "Transforma para texto"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nome_jogo": "={{ $json.nome_jogo }}",
+            "quant_atual": "={{ $json.quant_atual }}"
+          },
+          "matchingColumns": [
+            "nome_jogo"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nome_jogo",
+              "displayName": "nome_jogo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "valor_cota",
+              "displayName": "valor_cota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ativo",
+              "displayName": "ativo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "descricao",
+              "displayName": "descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_max",
+              "displayName": "quant_max",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_atual",
+              "displayName": "quant_atual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link_jogos",
+              "displayName": "link_jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "data_expiração",
+              "displayName": "data_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "hora_expiração",
+              "displayName": "hora_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        1072
+      ],
+      "id": "4494d1ac-de79-41fa-b3c9-b87bc705479b",
+      "name": "Atualiaza quantidade de cotas",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nome_jogo": "={{ $json.nome_jogo }}",
+            "ativo": "false"
+          },
+          "matchingColumns": [
+            "nome_jogo"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nome_jogo",
+              "displayName": "nome_jogo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "valor_cota",
+              "displayName": "valor_cota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ativo",
+              "displayName": "ativo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "descricao",
+              "displayName": "descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_max",
+              "displayName": "quant_max",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_atual",
+              "displayName": "quant_atual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "link_jogos",
+              "displayName": "link_jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "data_expiração",
+              "displayName": "data_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "hora_expiração",
+              "displayName": "hora_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        880
+      ],
+      "id": "24f9b0db-3be3-47d0-8295-8e446211c45d",
+      "name": "Atualiaza status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "17f646a7-8184-40d7-a8b8-ad4b142db2b9",
+              "leftValue": "={{ $('Soma as cotas adicionada').item.json.quant_max }}",
+              "rightValue": "={{ $json.quant_atual.toString()}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        1168
+      ],
+      "id": "0aae7132-dd36-42d0-915a-07f3d859fae1",
+      "name": "Verifica se alcançou o limite1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        1296
+      ],
+      "id": "646dd1ee-46bc-4cd1-8047-4de62fc8a7c6",
+      "name": "Loop itens1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nome_jogo": "={{ $json.nome_jogo }}",
+            "ativo": "false"
+          },
+          "matchingColumns": [
+            "nome_jogo"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nome_jogo",
+              "displayName": "nome_jogo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "valor_cota",
+              "displayName": "valor_cota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ativo",
+              "displayName": "ativo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "descricao",
+              "displayName": "descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_max",
+              "displayName": "quant_max",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_atual",
+              "displayName": "quant_atual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "link_jogos",
+              "displayName": "link_jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "data_expiração",
+              "displayName": "data_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "hora_expiração",
+              "displayName": "hora_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        1312
+      ],
+      "id": "19e2e4c1-4d7a-4918-aa95-e35e2c76bec8",
+      "name": "Atualiaza status 2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $json.id_chat }}",
+        "text": "=Seu pagamento foi recebido.\n[K-TESTE]",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        -448,
+        240
+      ],
+      "id": "bfadbe95-b536-4b9d-a26b-2079dad30fd2",
+      "name": "Manda messagem notificado o usuario1",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8664063296",
+        "text": "=Notificação de atualização das Tabelas:\n{{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        -416
+      ],
+      "id": "bef931c9-c4cc-4e48-b5b5-db7e831a1223",
+      "name": "manda messagem para o dono1",
+      "webhookId": "80b49cc7-1943-49da-8998-ce4e5218537f",
+      "credentials": {
+        "telegramApi": {
+          "id": "8H2JWG8CElFbFmIq",
+          "name": "Notifica sobre as tabelas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed6a127d-9795-4205-afd2-80d8be24ec5b",
+              "name": "0 APOSTADOR",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "ebf9dd4b-2442-4a45-9b83-82fb0476b532",
+              "name": "CELULAR",
+              "value": "={{ $json.numero }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "except",
+        "excludeFields": "nome, numero",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        448
+      ],
+      "id": "a6823ffa-b84b-4fd1-9a8f-a49358e6cdd1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1dFC1c23QJ_UXPqfI-oKs4-F2wnAZUpjsWqGlkPt20lU/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Grupo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dFC1c23QJ_UXPqfI-oKs4-F2wnAZUpjsWqGlkPt20lU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "nome_grupo",
+              "lookupValue": "={{ $json.nome_do_jogo }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "1c5560b3-1c4c-4e1b-a071-0193773fa120",
+      "name": "Lista de grupos",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a064bc73-5a3b-4c9a-b7b5-cc3f6f4c6a8c",
+              "leftValue": "={{ $json.nome_grupo }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "a3e75f6c-cf30-4e75-9eea-d1a4eafc56f6",
+      "name": "Verifica se existe grupo"
+    },
+    {
+      "parameters": {
+        "resource": "Groups",
+        "operation": "Create Group",
+        "session": "default",
+        "name": "={{ $('Separa as info para AI').item.json.nome_do_jogo }}",
+        "participants": "= [\n    {\n      \"id\": \"55{{ $('Pega informações do cliente').item.json.numero + \"@c.us\" }}\"\n    },\n     {\n      \"id\": \"5513997616631@c.us\"\n    }\n  ]",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        672,
+        64
+      ],
+      "id": "5ee67b7e-3046-40cc-8e63-71b908851ee5",
+      "name": "Create a new group.",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1dFC1c23QJ_UXPqfI-oKs4-F2wnAZUpjsWqGlkPt20lU/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Grupo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dFC1c23QJ_UXPqfI-oKs4-F2wnAZUpjsWqGlkPt20lU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_grupo": "={{ $json.id }}",
+            "nome_grupo": "={{ $json.subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_grupo",
+              "displayName": "id_grupo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nome_grupo",
+              "displayName": "nome_grupo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        64
+      ],
+      "id": "069d224f-33db-494f-87ac-54e75b781095",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Groups",
+        "operation": "Add Participants",
+        "session": "default",
+        "id": "={{ $('Verifica se existe grupo').item.json.id_grupo }}",
+        "participants": "=[\n  {\n    \"id\": \"{{ '55' + $('Pega informações do cliente').item.json.numero + '@c.us' }}\"\n  }\n]",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1344,
+        -320
+      ],
+      "id": "1c987818-3d68-44ef-bfcc-47cdc7e0851b",
+      "name": "Add participants",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "Groups",
+        "operation": "Get Invite Code",
+        "session": "=default",
+        "id": "={{ $('Verifica se existe grupo').item.json.id_grupo }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1792,
+        -320
+      ],
+      "id": "143c2bb1-1f30-4a6b-8b3e-bf192bfec965",
+      "name": "Gets the invite code for the group.",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $('Pega informações do cliente').item.json.id_chat }}",
+        "text": "=Olá! Tentei te adicionar ao grupo, mas suas configurações de privacidade ou um problema não permitiram. 😕 \n\nClique no link abaixo para entrar manualmente:\nhttps://chat.whatsapp.com/{{ $json }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        2016,
+        -320
+      ],
+      "id": "45e48ccf-bc7f-4828-9c36-424e59aed906",
+      "name": "Send a text message",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a064bc73-5a3b-4c9a-b7b5-cc3f6f4c6a8c",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=200",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        -320
+      ],
+      "id": "e26cc639-e6c3-4f7e-a075-2b8cccbd52dc",
+      "name": "Verifica se add de usuario"
+    },
+    {
+      "parameters": {
+        "resource": "Groups",
+        "operation": "Get Participants",
+        "session": "default",
+        "id": "={{ $json.id_grupo }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        672,
+        -128
+      ],
+      "id": "3c217474-d5a4-499d-82e2-dfb77f678a4f",
+      "name": "Get participants",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -128
+      ],
+      "id": "cd3395ba-4dad-4b98-8714-6d39c3be266b",
+      "name": "Loop",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18245e2f-156b-4aec-80de-6da935f18585",
+              "leftValue": "={{ $('Pega informações do cliente').item.json.id_chat }}",
+              "rightValue": "={{ $json.id }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "76f9c3c4-5e3e-41ca-970b-4bf595e4b136",
+      "name": "Verefica se esta no grupo"
+    },
+    {
+      "parameters": {
+        "resource": "Groups",
+        "operation": "Promote To Admin",
+        "session": "=default",
+        "id": "={{ $('Create a new group.').item.json.id }}",
+        "participants": "[\n  {\n    \"id\": \"5513997616631@c.us\"\n  }\n]",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1120,
+        64
+      ],
+      "id": "c93f582d-fe9e-4598-83fb-1afb7bfa7f7d",
+      "name": "Promote participants to admin users.",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -320
+      ],
+      "id": "0f9a8e09-a0b9-49e7-9dad-3d610c77d00b",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Filtro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro": {
+      "main": [
+        [
+          {
+            "node": "Paga as informações do pagamento no banco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paga as informações do pagamento no banco": {
+      "main": [
+        [
+          {
+            "node": "Pega informações do cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega informações do cliente": {
+      "main": [
+        [
+          {
+            "node": "Define os tipos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define os tipos": {
+      "main": [
+        [
+          {
+            "node": "Verifica se as informações estão corretas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se as informações estão corretas": {
+      "main": [
+        [
+          {
+            "node": "Organiza as info  da AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junta todas as messagens da IA": {
+      "main": [
+        [
+          {
+            "node": "manda messagem para o dono",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "manda messagem para o dono1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa as info para AI": {
+      "main": [
+        [
+          {
+            "node": "Verifica se tem alguma cota",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Lista de grupos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop itens": {
+      "main": [
+        [
+          {
+            "node": "Junta todas as messagens da IA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Separa as info para AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Soma os campos iguais": {
+      "main": [
+        [
+          {
+            "node": "Oragniza as info para a planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junta em unico fluxo": {
+      "main": [
+        [
+          {
+            "node": "Soma os campos iguais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se tem alguma cota": {
+      "main": [
+        [
+          {
+            "node": "Verifica o verifica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa info  da AI": {
+      "main": [
+        [
+          {
+            "node": "Loop itens",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop itens1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza as info  da AI": {
+      "main": [
+        [
+          {
+            "node": "Separa info  da AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Manda messagem notificado o usuario1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza ou add cota": {
+      "main": [
+        [
+          {
+            "node": "Verifica se deu erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se deu erro": {
+      "main": [
+        [
+          {
+            "node": "Organiza as informação para messagem de erro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Organiza as informação para messagem de erro1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica o verifica": {
+      "main": [
+        [
+          {
+            "node": "Junta em unico fluxo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera a messagem de sucesso para o dono": {
+      "main": [
+        [
+          {
+            "node": "Loop itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera a messagem erro para o dono": {
+      "main": [
+        [
+          {
+            "node": "Loop itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza as informação para messagem de erro": {
+      "main": [
+        [
+          {
+            "node": "Gera a messagem erro para o dono",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Oragniza as info para a planilha": {
+      "main": [
+        [
+          {
+            "node": "Atualiza ou add cota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza as informação para messagem de erro1": {
+      "main": [
+        [
+          {
+            "node": "Gera a messagem de sucesso para o dono",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega informação da tabela de jogos": {
+      "main": [
+        [
+          {
+            "node": "Transforma para texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Soma as cotas adicionada": {
+      "main": [
+        [
+          {
+            "node": "Atualiaza quantidade de cotas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se alcançou o limite": {
+      "main": [
+        [
+          {
+            "node": "Atualiaza status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Soma as cotas adicionada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transforma para texto": {
+      "main": [
+        [
+          {
+            "node": "Verifica se alcançou o limite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se alcançou o limite1": {
+      "main": [
+        [
+          {
+            "node": "Atualiaza status 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop itens1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiaza quantidade de cotas": {
+      "main": [
+        [
+          {
+            "node": "Verifica se alcançou o limite1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop itens1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Pega informação da tabela de jogos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiaza status 2": {
+      "main": [
+        [
+          {
+            "node": "Loop itens1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manda messagem notificado o usuario1": {
+      "main": [
+        [
+          {
+            "node": "Atualiza Para pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Junta em unico fluxo",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Lista de grupos": {
+      "main": [
+        [
+          {
+            "node": "Verifica se existe grupo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se existe grupo": {
+      "main": [
+        [
+          {
+            "node": "Get participants",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a new group.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a new group.": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add participants": {
+      "main": [
+        [
+          {
+            "node": "Verifica se add de usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gets the invite code for the group.": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se add de usuario": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Gets the invite code for the group.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get participants": {
+      "main": [
+        [
+          {
+            "node": "Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verefica se esta no grupo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verefica se esta no grupo": {
+      "main": [
+        [
+          {
+            "node": "Loop",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Promote participants to admin users.": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Promote participants to admin users.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Add participants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "025787cf-d2cd-4133-805d-d69fd824b85c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "FfqqANL8LgU8lbH3",
+  "tags": []
+}

@@ -1,0 +1,97 @@
+```yaml
+networks:
+  automacao-jhcBolao:
+    driver: bridge
+
+services:
+  n8n-bolao:
+    image: n8nio/n8n:latest
+    container_name: n8n-bolao
+    hostname: n8n-bolao
+    restart: unless-stopped
+
+    networks:
+      - automacao-jhcBolao
+
+    mem_limit: 1500m
+    cpus: 1.0
+
+    environment:
+      TZ: ${TZ}
+
+      N8N_HOST: ${N8N_HOST}
+      N8N_PROTOCOL: ${N8N_PROTOCOL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}
+      N8N_PORT: ${N8N_PORT}
+      N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE}
+
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+
+      N8N_RUNNERS_ENABLED: ${N8N_RUNNERS_ENABLED}
+      EXECUTIONS_PROCESS: ${EXECUTIONS_PROCESS}
+      EXECUTIONS_DATA_PRUNE: ${EXECUTIONS_DATA_PRUNE}
+      EXECUTIONS_DATA_MAX_AGE: ${EXECUTIONS_DATA_MAX_AGE}
+
+      NODE_OPTIONS: ${N8N_NODE_OPTIONS}
+
+    ports:
+      - "${N8N_PORT_EXTERNAL}:5678"
+
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+
+  waha-bolao:
+    image: devlikeapro/waha:latest
+    container_name: waha-bolao
+    hostname: waha-bolao
+    restart: unless-stopped
+
+    networks:
+      - automacao-jhcBolao
+
+    mem_limit: 2g
+    cpus: 1.2
+    shm_size: 512mb
+
+    environment:
+      TZ: ${TZ}
+
+      WHATSAPP_DEFAULT_ENGINE: ${WHATSAPP_DEFAULT_ENGINE}
+
+      WHATSAPP_HOOK_URL: ${WHATSAPP_HOOK_URL}
+      WHATSAPP_HOOK_EVENTS: ${WHATSAPP_HOOK_EVENTS}
+
+      WHATSAPP_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_API_KEY: ${WAHA_API_KEY}
+
+      NODE_OPTIONS: ${WAHA_NODE_OPTIONS}
+
+    ports:
+      - "${WAHA_PORT_EXTERNAL}:3000"
+
+    volumes:
+      - ./waha_data:/app/.sessions
+      - ./waha_media:/app/.media
+
+    depends_on:
+      - n8n-bolao
+
+
+  cloudflared-bolao:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-bolao
+    hostname: cloudflared-bolao
+    restart: unless-stopped
+
+    networks:
+      - automacao-jhcBolao
+
+    mem_limit: 256m
+    cpus: 0.3
+
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+```

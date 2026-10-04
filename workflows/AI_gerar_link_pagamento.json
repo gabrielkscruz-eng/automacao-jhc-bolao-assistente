@@ -1,0 +1,411 @@
+{
+  "name": "AI_gerar_link_pagamento",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "nome"
+            },
+            {
+              "name": "numero"
+            },
+            {
+              "name": "jogos",
+              "type": "array"
+            },
+            {
+              "name": "id_chat"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        -208
+      ],
+      "id": "24f0aef8-b1f6-40a8-a681-23572f7fd8a3",
+      "name": "AI_gerar_link_pagamento"
+    },
+    {
+      "parameters": {
+        "jsCode": "/***********************\n * 🔧 CONFIGURAÇÃO E ENTRADA\n ***********************/\nconst BASE_URL = \"https://jhcbolao.kevin.app.br\";\nconst entrada = $input.first().json;\nconst dados = Array.isArray(entrada) ? entrada : entrada; // Garante captura correta\nconst jogos = dados.jogos;\n\nif (!Array.isArray(jogos)) {\n  throw new Error(\"O campo 'jogos' precisa ser um array.\");\n}\n\nlet total = 0;\n\n/***********************\n * 📊 CÁLCULO E DETALHAMENTO\n ***********************/\nconst detalhamento = jogos.map(jogo => {\n  const preco = Number(jogo.valor_unitario) || 0;\n  const quantidade = Number(jogo.quantidade_cotas) || 0;\n  const subtotal = preco * quantidade;\n  total += subtotal;\n\n  return {\n    nome_jogo: jogo.nome_jogo,\n    preco_unitario: preco,\n    quantidade_cotas: quantidade,\n    subtotal: subtotal,\n    link_tabela: jogo.link_tabela\n  };\n});\n\nconst id_interno = \"pedido_\" + Date.now() + \"_\" + Math.floor(Math.random() * 1000);\n\n/***********************\n * ⏳ LÓGICA DE EXPIRAÇÃO (18H BRASÍLIA)\n ***********************/\n// 1. Pega o horário atual forçando o fuso de São Paulo (mesmo com n8n em NY)\nconst agoraBR = new Date(new Date().toLocaleString(\"en-US\", {timeZone: \"America/Sao_Paulo\"}));\n\n// 2. Define a expiração base para HOJE às 18:00\nlet dataExpiracao = new Date(agoraBR);\ndataExpiracao.setHours(18, 0, 0, 0);\n\n// 3. Se agora já passou das 18h, pula o vencimento para amanhã às 18h\nif (agoraBR >= dataExpiracao) {\n  dataExpiracao.setDate(dataExpiracao.getDate() + 1);\n}\n\n// 4. Formata a string ISO final com o sufixo -03:00 fixo\nconst pad = (n) => String(n).padStart(2, '0');\nconst ano = dataExpiracao.getFullYear();\nconst mes = pad(dataExpiracao.getMonth() + 1);\nconst dia = pad(dataExpiracao.getDate());\n\n// Resultado final: YYYY-MM-DDT18:00:00.000-03:00\nconst expirationISO = `${ano}-${mes}-${dia}T18:00:00.000-03:00`;\n\n/***********************\n * 🚀 RETORNO\n ***********************/\nreturn [\n  {\n    json: {\n      id_interno,\n      total_geral: Number(total.toFixed(2)),\n      detalhamento,\n      nome: dados.nome || \"Cliente\",\n      numero: dados.numero,\n      date_of_expiration: expirationISO,\n      notification_url: `${BASE_URL}/webhook/pagamento_bolao`\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -208
+      ],
+      "id": "dda8ba50-d7d9-4854-9925-a710a5d07067",
+      "name": "Calcula o preço1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mercadopago.com/v1/payments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Idempotency-Key",
+              "value": "={{$json.external_reference}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        -208
+      ],
+      "id": "5290d978-6699-43a8-9aad-5d084322415f",
+      "name": "Gerar link de pagamento teste1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "n9eO0UCRIoAH5Brk",
+          "name": "GABRIEL MERCADO PAG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pagamentos pedentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-LoMW5OJxAhLjOXmfqAzU7qyjodFkr_VReKXgrGu_zI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_interno": "={{ $json.id_interno }}",
+            "id_pagamento": "={{ $json.link_pagamento }}",
+            "dia_criado": "={{ $now.format('dd/MM/yyyy HH:mm') }}",
+            "dia_expira": "={{ $json.expira }}",
+            "status": "Pendente",
+            "valor": "={{ $json.preco_total }}",
+            "jogos": "={{ $json.detalhamento }}",
+            "id_chat": "={{ $json.id_chat }}",
+            "nome": "={{ $json.nome }}",
+            "numero": "={{ $json.numero }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_interno",
+              "displayName": "id_interno",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_pagamento",
+              "displayName": "id_pagamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_chat",
+              "displayName": "id_chat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "numero",
+              "displayName": "numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jogos",
+              "displayName": "jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valor",
+              "displayName": "valor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "dia_criado",
+              "displayName": "dia_criado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "dia_expira",
+              "displayName": "dia_expira",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1104,
+        -208
+      ],
+      "id": "250f5cb4-caed-41a8-8201-8b5fca09f411",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7725f56d-aa7d-4c8d-b36b-28cc3ab3f847",
+              "name": "link_pagamento",
+              "value": "={{ $json.id_pagamento }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1328,
+        -208
+      ],
+      "id": "8599991b-7519-4327-adc9-522d47bf1f01",
+      "name": "Retorna o link de pagamento1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\n// Define um nome padrão caso venha vazio para evitar erro na API\nconst nomeCliente = input.nome || \"Cliente Bolao\";\n\n// Gera e-mail sem espaços e minúsculo\nconst emailLimpo = input.id_interno.replace(/\\s+/g, \"\").toLowerCase() + \"@jhcbolao.kevin.app.br\";\n\nconst payment = {\n  transaction_amount: Number(input.total_geral),\n  description: \"Cota Bolão\",\n  payment_method_id: \"pix\",\n  external_reference: input.id_interno,\n  notification_url: input.notification_url,\n  date_of_expiration: String(input.date_of_expiration), \n  payer: {\n    email: emailLimpo,\n    first_name: nomeCliente\n  }\n};\n\nreturn [{ json: payment }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -208
+      ],
+      "id": "2cd3a7f4-d736-4f6b-8f0f-e4ea3ff3d62b",
+      "name": "Gera a preferencia para mercado pago1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2cde40c-f852-4e38-b7fa-c1e2596e9b92",
+              "name": "id_interno",
+              "value": "={{ $('Calcula o preço1').item.json.id_interno }}",
+              "type": "string"
+            },
+            {
+              "id": "3c6ca395-2ff2-4f5b-a8e6-8c720cc767f2",
+              "name": "nome",
+              "value": "={{ $('AI_gerar_link_pagamento').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "2a471012-6129-43b0-b976-68aa9be3cf43",
+              "name": "numero",
+              "value": "={{ $('AI_gerar_link_pagamento').item.json.numero }}",
+              "type": "string"
+            },
+            {
+              "id": "fb123977-e5f6-4614-97bf-ce58887705b2",
+              "name": "preco_total",
+              "value": "={{ $('Calcula o preço1').item.json.total_geral }}",
+              "type": "number"
+            },
+            {
+              "id": "d1417058-4115-41fe-9f59-4981330f1877",
+              "name": "detalhamento",
+              "value": "={{ $('Calcula o preço1').item.json.detalhamento }}",
+              "type": "string"
+            },
+            {
+              "id": "82f3223a-0f7a-4346-a41e-c9d94b8f2f49",
+              "name": "link_pagamento",
+              "value": "={{ $json.point_of_interaction.transaction_data.qr_code }}",
+              "type": "string"
+            },
+            {
+              "id": "8873ea15-81c7-4813-99b0-06307807dfdb",
+              "name": "expira",
+              "value": "={{ $('Gera a preferencia para mercado pago1').item.json.date_of_expiration.toDateTime().format('dd/MM/yyyy HH:mm') }}",
+              "type": "string"
+            },
+            {
+              "id": "ce67fb5f-0bdd-4b99-a958-182d9d27f6d4",
+              "name": "id_chat",
+              "value": "={{ $('AI_gerar_link_pagamento').item.json.id_chat }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        -208
+      ],
+      "id": "20ff19b1-2847-4d39-b5c7-d0f156357916",
+      "name": "Organiza informações para Planilha1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI_gerar_link_pagamento": {
+      "main": [
+        [
+          {
+            "node": "Calcula o preço1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcula o preço1": {
+      "main": [
+        [
+          {
+            "node": "Gera a preferencia para mercado pago1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar link de pagamento teste1": {
+      "main": [
+        [
+          {
+            "node": "Organiza informações para Planilha1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Retorna o link de pagamento1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera a preferencia para mercado pago1": {
+      "main": [
+        [
+          {
+            "node": "Gerar link de pagamento teste1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza informações para Planilha1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3b36b376-621e-4508-ae9b-bda32b7e4733",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "EHBerCwX1MP2IwcB",
+  "tags": []
+}

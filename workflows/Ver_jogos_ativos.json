@@ -1,0 +1,267 @@
+{
+  "name": "Ver_jogos_ativos",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        80
+      ],
+      "id": "fe0aeb8d-be1f-4a11-a458-717af1d10514",
+      "name": "Loop Over Items",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "01e7c54a-1d60-48aa-adba-6904f918cf3a",
+              "name": "nome_jogo",
+              "value": "={{ $json.nome_jogo }}\n",
+              "type": "string"
+            },
+            {
+              "id": "fbc9fd42-0e88-4c49-8a8e-f5c6e2a290bd",
+              "name": "link_jogos",
+              "value": "={{ $json.link_jogos }}",
+              "type": "string"
+            },
+            {
+              "id": "35f0436c-69c0-48f9-beb5-61b315ea95fb",
+              "name": "numero",
+              "value": "={{ $('Ver_jogos_ativos').item.json.numero }}",
+              "type": "string"
+            },
+            {
+              "id": "a16fe821-141a-4244-8d44-63f853f1d9f3",
+              "name": "Nome da folha",
+              "value": "Página1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -448,
+        80
+      ],
+      "id": "86ed1b86-75df-4124-96ea-c4fa3ef5e675",
+      "name": "Pega as informações para acessar as planilhas"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        80
+      ],
+      "id": "e50cbcbc-38ff-4aba-86ab-bf87590ae764",
+      "name": "Le a planilha Tabelas de jogos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.link_jogos }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json['Nome da folha'] }}",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "CELULAR",
+              "lookupValue": "={{ $json.numero }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bba120c8-8702-4bf0-843e-50b1d23bfd7b",
+      "name": "Le a planilha do jogo",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "297de293-a290-47ee-8fd2-f15406784d58",
+              "name": "nome_jogo",
+              "value": "={{ $('Loop Over Items').item.json.nome_jogo }}",
+              "type": "string"
+            },
+            {
+              "id": "fe5aa77f-90cf-48dc-9676-7b5ad44ccbe1",
+              "name": "cotas_no_jogo",
+              "value": "={{ $json.cotas }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        80
+      ],
+      "id": "0c0058b6-87dd-4899-bca1-8f36799a653f",
+      "name": "Separa as informações sobre o usuario"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Nome"
+            },
+            {
+              "name": "numero"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        80
+      ],
+      "id": "59f3f443-ee37-4ef5-938f-9a12093190ca",
+      "name": "Ver_jogos_ativos"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Le a planilha do jogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega as informações para acessar as planilhas": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Le a planilha Tabelas de jogos": {
+      "main": [
+        [
+          {
+            "node": "Pega as informações para acessar as planilhas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Le a planilha do jogo": {
+      "main": [
+        [
+          {
+            "node": "Separa as informações sobre o usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa as informações sobre o usuario": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver_jogos_ativos": {
+      "main": [
+        [
+          {
+            "node": "Le a planilha Tabelas de jogos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4048ca33-9a52-4e9c-aee0-025ee2bbf063",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "IoZXNrb7wzILjwES",
+  "tags": []
+}

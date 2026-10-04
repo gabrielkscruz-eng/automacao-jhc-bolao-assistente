@@ -1,0 +1,378 @@
+{
+  "name": "Atualiza as tabelas",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        48
+      ],
+      "id": "367b670b-f261-46d3-b894-210547a18ec0",
+      "name": "Pega os dias dos jogos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        48
+      ],
+      "id": "ab5aa9e0-d638-4906-ab19-8eb026ffb6ac",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "913f1cfa-12bf-4e86-9407-a1fe7d8bcc25",
+              "leftValue": "={{ $now.format('yyyy-MM-dd') }}",
+              "rightValue": "={{ $json['data_expiração'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7e23b078-acd4-41ca-8afa-6676edd0a8bb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1818997-06ec-435b-9e20-773d01363f0f",
+              "name": "data_expiração",
+              "value": "={{ $json['data_expiração'].toDateTime().toUTC().format('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "3fd3709d-bfba-4b21-950c-f27a2ff367b2",
+              "name": "nome_jogo",
+              "value": "={{ $json.nome_jogo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -448,
+        48
+      ],
+      "id": "d20b4a30-f877-4214-825c-84fcbed27534",
+      "name": "Separa os nomes e as datas dos jogos"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ativo": "=false",
+            "nome_jogo": "={{ $json.nome_jogo }}"
+          },
+          "matchingColumns": [
+            "nome_jogo"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nome_jogo",
+              "displayName": "nome_jogo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "valor_cota",
+              "displayName": "valor_cota",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ativo",
+              "displayName": "ativo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "descricao",
+              "displayName": "descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_max",
+              "displayName": "quant_max",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quant_atual",
+              "displayName": "quant_atual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "link_jogos",
+              "displayName": "link_jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "data_expiração",
+              "displayName": "data_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "hora_expiração",
+              "displayName": "hora_expiração",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        80
+      ],
+      "id": "a51e559a-dbc2-4f5d-981e-a62b3349a0db",
+      "name": "Desativa jogos que acabam hoje",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 17,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -896,
+        48
+      ],
+      "id": "e6358b2d-e429-4f3a-bb4e-ff02a0ec4b74",
+      "name": "Aciona as 17:30"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Pega os dias dos jogos": {
+      "main": [
+        [
+          {
+            "node": "Separa os nomes e as datas dos jogos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Desativa jogos que acabam hoje",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa os nomes e as datas dos jogos": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desativa jogos que acabam hoje": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aciona as 17:30": {
+      "main": [
+        [
+          {
+            "node": "Pega os dias dos jogos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7b9e4bd5-b3a1-40d5-b470-95fdf4fcf6b4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "UJeTyLo2xiHlwfu3",
+  "tags": []
+}

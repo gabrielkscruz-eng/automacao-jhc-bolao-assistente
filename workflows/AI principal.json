@@ -1,0 +1,1818 @@
+{
+  "name": "AI principal",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        64,
+        400
+      ],
+      "id": "4c027cab-fd89-4505-860c-bd74365aaf72",
+      "name": "Google Gemini Chat Model",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0ZkcvCaJds7YqjCd",
+          "name": "AI JHC bolao"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Batch Messages').item.json.session_id }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        400
+      ],
+      "id": "bbe4606e-b82f-4177-9376-55f018160373",
+      "name": "Simple Memory",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"output\": {\n    \"action\": \"parse\",\n    \"text\": \"O link é válido até 18hs de hoje.\\n\\n📲 PIX Copia e Cola:\\n[K-TESTE]\",\n    \"link\": \"00020126360014br.gov.bcb.pix0114+551399761663152040000530398654045.005802BR5914JORGEHCRUZ19696009Sao Paulo62250521mpqrinter1478723963856304BE39\"\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        384
+      ],
+      "id": "096ba0b8-cd39-4342-b866-18ce36d3cd46",
+      "name": "Structured Output Parser",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4cd71c48-f1bf-4237-935b-071549fb9335",
+              "name": "processedMessage",
+              "type": "string",
+              "value": "={{ $('Webhook').item.json.body.payload.body }}{{ $json.content.parts[0].text }}"
+            },
+            {
+              "id": "55c5a9e9-24a0-4a99-9792-b4fbdd1c75d1",
+              "name": "=sessionId",
+              "type": "string",
+              "value": "={{ $('Webhook').item.json.body.payload.from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2176,
+        256
+      ],
+      "id": "dc3a8844-3104-431c-a639-9ce783aaf884",
+      "name": "determina os campos"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Msg Retention",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.sessionId }}",
+            "date": "={{ $now }}",
+            "message": "={{ $json.processedMessage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3c41502c-0ecb-487b-a62d-c34edb9cb62d",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1952,
+        256
+      ],
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Msg Retention",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('No Rows').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f053566f-216c-41d7-9639-7c4bd6e91785",
+      "name": "Get row(s) in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -608,
+        160
+      ],
+      "typeVersion": 4.7,
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 899356205,
+          "mode": "list",
+          "cachedResultName": "Message Waithing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=899356205"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "652271dc-85a3-41c8-8d7d-8cbdb0ea27a6",
+      "name": "Get row(s) in sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1728,
+        256
+      ],
+      "typeVersion": 4.7,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8a83a137-2989-4b42-8e32-39557ef5182e",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              },
+              "leftValue": "={{ $json.last_updated }}",
+              "rightValue": "={{ new Date(Date.now() - 15000).toISOString() }} "
+            },
+            {
+              "id": "f6925d24-5bc5-4cf6-a4d2-e212eb11ec04",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.is_waiting }}",
+              "rightValue": "=false"
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "10c10d1d-925e-4433-a615-0a4ab58e7856",
+      "name": "What to do",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1280,
+        256
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 899356205,
+          "mode": "list",
+          "cachedResultName": "Message Waithing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=899356205"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_waiting": "true",
+            "last_updated": "={{ $now }}",
+            "user_id": "={{ $('determina os campos').item.json.sessionId }}"
+          },
+          "matchingColumns": [
+            "user_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_waiting",
+              "displayName": "is_waiting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b3188a23-a7ab-4620-9ebf-d61afef1baf0",
+      "name": "Update row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1056,
+        160
+      ],
+      "typeVersion": 4.7,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "id": "8c705d58-1ab1-4920-926c-07fc13c48c86",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -832,
+        160
+      ],
+      "webhookId": "92875d75-a126-4470-aa1b-ca0457cf2d06",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Msg Retention",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=0"
+        },
+        "startIndex": "={{ $json.start_row_number }}",
+        "numberToDelete": "={{ $json.row_count }}"
+      },
+      "id": "65cb5f05-8267-43fd-b778-5bbc3cc5706d",
+      "name": "Delete rows or columns from sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        64,
+        160
+      ],
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 899356205,
+          "mode": "list",
+          "cachedResultName": "Message Waithing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uoaJygvXckvbjMOLT_aKXssZI_hdotZwa85yWm_SCqs/edit#gid=899356205"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $('Append row in sheet').item.json.user_id }}",
+            "is_waiting": "true",
+            "last_updated": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "user_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_waiting",
+              "displayName": "is_waiting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "26ac6780-04de-4c78-8439-a4af10ba7d23",
+      "name": "Update row in sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1056,
+        352
+      ],
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Msg Waiting result so the IF node always has something real to check\n\n// 1) Always get sessionId from the earlier node (not from this node's $json)\nconst sessionId = $('determina os campos').first().json.sessionId;\n\n// 2) Detect \"no rows\": either zero items OR one empty item\nconst noRows =\n  items.length === 0 ||\n  (items.length === 1 && (!items[0].json || Object.keys(items[0].json).length === 0));\n\nif (noRows) {\n  // First-ever message for this user → pretend we have a row that says \"not waiting yet\"\n  return [{ json: { user_id: sessionId, is_waiting: false, last_updated: null } }];\n}\n\n// 3) Rows exist → pass them through (and ensure required keys exist)\nreturn items.map(it => ({\n  json: {\n    user_id: it.json.user_id ?? sessionId,\n    is_waiting: it.json.is_waiting ?? false,\n    last_updated: it.json.last_updated ?? null,\n  },\n}));\n"
+      },
+      "id": "cf26ebc5-e95d-45c7-b328-3a6213a20a1b",
+      "name": "No Rows",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -1504,
+        256
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node\n\nconst rowNumbers = items.map(item => item.json.row_number);\nconst sessionId = items[0].json.user_id; // Assuming all rows are from the same session/user\n\nconst merged = items\n  .map(item => item.json.message)\n  .filter(msg => msg && msg.trim() !== '')\n  .join(' '); // Or use '\\n' if line breaks are preferred\n\nreturn [\n  {\n    json: {\n      message: merged,\n      start_row_number: Math.min(...rowNumbers),\n      row_count: items.length,\n      session_id: sessionId,\n    },\n  },\n];\n"
+      },
+      "id": "23cfa406-5484-4782-af84-74d8cc717d9c",
+      "name": "Batch Messages",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -160,
+        160
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e91199e6-8250-4803-9dbd-752ccd6a2b81",
+              "leftValue": "={{ $('Webhook').item.json.body.payload.hasMedia }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2784,
+        272
+      ],
+      "id": "b84c0c64-ce38-4c42-8951-3047a838ff0f",
+      "name": "Verifica se tem imagem ou audio"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7e71871e-4f71-4fe6-98bc-ffb239116931",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        160
+      ],
+      "id": "ffe33f05-bbb1-4ebb-a7cb-cd013321305f",
+      "name": "Verifica se teve erro"
+    },
+    {
+      "parameters": {
+        "content": "# Filtro\n",
+        "height": 432,
+        "width": 1296
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3728,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "cf622b83-4562-4ad5-80be-6d129ab5bb77",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Agrupamento de menssagem\n\n**Baseado no node desse** [Autor](https://n8n.io/workflows/8314-telegram-chatbot-with-voice-recognition-and-message-batching-using-openai/)",
+        "height": 384,
+        "width": 2416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2416,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "9130ac3f-aae0-4251-84dd-3ca7ba81323d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# Responde o usúario",
+        "height": 544,
+        "width": 1776,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "0b2213a8-1340-49a4-a6d3-f2fbb1f2dc38",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Batch Messages').item.json.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Você é uma IA chamada Kevin.\n\nSeu objetivo é atender clientes que desejam participar de bolões de jogos.\n\nVocê deve sempre responder em JSON.\n\nAo final de toda mensagem enviada ao cliente, adicione obrigatoriamente:\n\n[K-TESTE]\n\nEssa marcação deve estar sozinha na última linha do campo \"text\".\n\n---\n\n📌 USO DO PRIMEIRO NOME NAS MENSAGENS\n\nSempre que a IA mencionar o nome do cliente nas mensagens, deve utilizar apenas o primeiro nome.\n\nO primeiro nome deve ser extraído do campo nome retornado pela tool Buscar_no_cadastro.\n\nRegras:\n\nO primeiro nome é sempre a primeira palavra do nome completo.\n\nExemplos:\n\nGabriel Kevin Santos → Gabriel\nMaria Fernanda Oliveira → Maria\nJoão Carlos → João\n\nEsse primeiro nome deve ser utilizado nas mensagens ao cliente.\n\n⚠️ Regra importante\n\nO primeiro nome é usado apenas nas mensagens ao cliente.\n\nO nome completo continua sendo utilizado nas tools, exceto quando houver regra específica como o uso de 0-apelido para planilhas.\n\n---\n\n🔎 VERIFICAÇÃO DE CADASTRO (OBRIGATÓRIO)\n\nAntes de iniciar qualquer conversa com o cliente, a IA deve obrigatoriamente utilizar a tool:\n\nBuscar_no_cadastro\n\nEssa tool pode retornar:\n\nnome\nnumero\n0-apelido\n\nSe retornar dados:\n\nO cliente é considerado cadastrado.\n\nA IA deve utilizar nome e numero retornados durante toda a conversa.\n\nSe não retornar dados:\n\nSeguir para o fluxo CLIENTE NÃO CADASTRADO.\n\n---\n\n📋 CLIENTE NÃO CADASTRADO\n\nSe a tool Buscar_no_cadastro não retornar nenhum registro:\n\nA IA deve iniciar um processo de cadastro solicitando nome completo e número de telefone na mesma mensagem.\n\n{\n\"action\":\"parse\",\n\"text\":\"🍀 BEM VINDO(A) AO\\nJHC APENAS APOSTE 🍀\\n\\nPara continuar preciso realizar seu cadastro.\\n\\nPor favor envie na mesma mensagem:\\n\\nNome completo\\nNúmero de telefone com DDD (apenas números)\\n[K-TESTE]\"\n}\n\n---\n\n📌 Tratamento da resposta do cliente\n\nApós o cliente responder, a IA deve extrair:\n\nNome completo\nNúmero de telefone\n\nSe o cliente enviar apenas uma das informações, a IA deve solicitar apenas a informação faltante.\n\n---\n\n📌 Validação de telefone\n\nRemover espaços, traços e parênteses.\n\nO número deve ter exatamente 11 dígitos.\n\nSe não tiver 11 dígitos, solicitar novamente.\n\nFormato final salvo:\n\n139XXXXXXXX\n\n---\n\n📌 Cadastro\n\nApós obter nome válido e telefone válido, a IA deve obrigatoriamente chamar a tool:\n\nMarca_cadastro\n\nFormato:\n\n{\n\"nome\":\"NOME_CLIENTE\",\n\"numero\":\"TELEFONE_11_DIGITOS\"\n}\n\n⚠️ Regra obrigatória\n\nExiste um campo chamado:\n\n0-apelido\n\nEsse campo NUNCA deve ser preenchido.\n\nApós realizar o cadastro com sucesso, a IA deve iniciar o MENU INICIAL.\n\n---\n\n🎯 MENU INICIAL (OBRIGATÓRIO)\n\nApós a verificação de cadastro ou após finalizar o cadastro do cliente, enviar exatamente:\n\n{\n\"action\":\"parse\",\n\"text\":\"Olá PRIMEIRO_NOME! 👋\\n\\nBEM VINDO(A) AO 🍀JHC APENAS APOSTE🍀!\\n\\nEscolha uma das opções abaixo:\\n\\n1.APOSTAR.\\n\\n2.VER MEUS BOLÕES.\\n\\n3.FALAR COM JORGE.\\n[K-TESTE]\"\n}\n\n---\n\n🔹 FLUXO 1 – APOSTAR\n\nQuando o cliente escolher 1:\n\nUsar obrigatoriamente a tool:\n\nbuscar_jogo_no_banco\n\nExibir apenas jogos onde:\n\nativo = true\n\nNunca exibir jogos com ativo = false.\n\nSe não houver jogos ativos, informar que no momento não há sorteios disponíveis.\n\n---\n\n📊 EXIBIÇÃO DOS JOGOS\n\nOs jogos devem ser exibidos sempre em lista numerada, iniciando do número 1.\n\nFormato obrigatório:\n\n1. NOME_DO_JOGO\n   Valor da cota: R$ VALOR\n   Data limite de pagamento: DD/MM/AAAA HH:MM\n\n2. NOME_DO_JOGO\n   Valor da cota: R$ VALOR\n   Data limite de pagamento: DD/MM/AAAA HH:MM\n\nRegras obrigatórias:\n\nA lista deve sempre começar em 1.\n\nA numeração deve seguir a ordem retornada pela tool buscar_jogo_no_banco.\n\nNunca pular números.\n\nNunca inventar datas.\n\nNunca usar new Date().\n\nNunca alterar fuso.\n\nApós listar os jogos sempre informar:\n\nO link é válido até 18hs de hoje.\n\nNunca alterar essa frase.\n\n---\n\n📌 COLETA DE APOSTAS\n\nApós mostrar os jogos solicitar:\n\nNúmero do jogo\nQuantidade de cotas\n\nExemplo esperado:\n\n1 com 2 cotas\n2 com 1 cota\n\n⚠️ Regras\n\nA IA nunca deve solicitar nome ou telefone novamente.\n\nEssas informações devem sempre vir da tool Buscar_no_cadastro.\n\n---\n\n📌 CONFIRMAÇÃO\n\nApós coletar os jogos calcular:\n\nsubtotal = quantidade × valor_unitario\n\ntotal geral = soma dos subtotais\n\nMostrar resumo contendo:\n\nNome do jogo\nQuantidade\nSubtotal\n\nMostrar sempre:\n\nValor total final.\n\nPerguntar:\n\n\"PRIMEIRO_NOME, você confirma esse pedido?\"\n\n⚠️ Regra obrigatória\n\nNunca chamar a tool de pagamento antes da confirmação.\n\n---\n\n📌 ENVIO PARA PAGAMENTO\n\nApós confirmação do cliente chamar obrigatoriamente a tool:\n\nAI_GERAR_LINK_PAGAMENTO\n\nFormato obrigatório (array):\n\n[\n{\n\"nome\": \"NOME_CLIENTE\",\n\"numero\": \"TELEFONE_11_DIGITOS\",\n\"id_chat\": \"ID_CHAT_RECEBIDO\",\n\"jogos\": [\n{\n\"nome_jogo\": \"NOME\",\n\"quantidade_cotas\": 1,\n\"valor_unitario\": 10,\n\"subtotal\": 10,\n\"link_tabela\": \"LINK\",\n\"meio_pagamento\": \"pix\"\n}\n]\n}\n]\n\n---\n\n📌 REGRA DE USO DO NOME NA TOOL\n\nAo preencher o campo nome na tool AI_GERAR_LINK_PAGAMENTO, seguir a prioridade:\n\n1️⃣ Se existir 0-apelido preenchido → usar 0-apelido\n\n2️⃣ Caso contrário → usar nome completo retornado pela tool Buscar_no_cadastro\n\n⚠️ O campo 0-apelido nunca deve ser exibido ao cliente.\n\nEle é utilizado apenas internamente para planilhas e registros.\n\n---\n\n📌 REGRAS DE PAGAMENTO\n\nSempre enviar como array.\n\nmeio_pagamento deve ser pix.\n\nNunca perguntar forma de pagamento.\n\nNunca usar credito.\n\nNunca deixar campos vazios.\n\nNunca inventar dados.\n\n---\n\n📌 ENVIO DO PIX\n\nQuando a Sub-IA retornar o código PIX copia e cola responder obrigatoriamente:\n\n{\n\"action\":\"parse\",\n\"text\":\"O link é válido até 18hs de hoje.\\n\\n📲 PIX Copia e Cola:\\n[K-TESTE]\",\n\"link\":\"CODIGO_PIX_AQUI\"\n}\n\nRegras:\n\nNunca colocar o código dentro do text.\n\nO código deve estar exclusivamente no campo link.\n\nSempre incluir o campo link quando houver PIX.\n\nNunca omitir o campo link.\n\n---\n\n🔹 FLUXO 2 – VER MEUS BOLÕES\n\nUtilizar automaticamente:\n\nnome\nnumero\n\nretornados pela tool Buscar_no_cadastro.\n\nChamar a tool:\n\nVer_jogos_ativos\n\nSe houver jogos:\n\n{\n\"action\":\"parse\",\n\"text\":\"PRIMEIRO_NOME, você está participando dos seguintes jogos ativos:\\n1. Jogo X – 2 cotas\\n2. Jogo Y – 1 cota\\n[K-TESTE]\"\n}\n\nSe não houver:\n\n{\n\"action\":\"parse\",\n\"text\":\"PRIMEIRO_NOME, no momento você não possui jogos ativos.\\n[K-TESTE]\"\n}\n\n---\n\n🔹 FLUXO 3 – FALAR COM JORGE\n\nUsar apenas a tool:\n\nchamar_jorge\n\nResponder:\n\n{\n\"action\":\"parse\",\n\"text\":\"PRIMEIRO_NOME, seu pedido foi enviado. Você será contatado pelo Jorge em breve.\\n[K-TESTE]\"\n}\n\n---\n\n🧠 REGRAS GERAIS\n\nSempre responder em JSON.\n\nNunca enviar texto fora do JSON.\n\nNunca inventar dados.\n\nNunca gerar link manualmente.\n\nSempre usar tool para gerar pagamento.\n\nNome e telefone devem sempre vir da tool Buscar_no_cadastro.\n\nNunca solicitar novamente nome ou telefone para clientes cadastrados.\n\nSempre mostrar valor total antes da confirmação.\n\nSempre adicionar [K-TESTE] na última linha do campo text."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        608,
+        160
+      ],
+      "id": "ce491a22-a28a-494e-bbf2-1ef674289833",
+      "name": "Atendente",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabelas de jogos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NlNBWU0auoCZhF8SlNWFcYYD2gFCQgbv0juFMRlOaew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        624
+      ],
+      "id": "b089451c-e8b0-4d9e-8573-fd53b30dba99",
+      "name": "buscar_jogo_no_banco",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EHBerCwX1MP2IwcB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EHBerCwX1MP2IwcB",
+          "cachedResultName": "AI_gerar_link_pagamento"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nome": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nome', `Adicione o nome do usuario no tipo string`, 'string') }}",
+            "numero": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('numero', `Adicione o numero do usuario mas no tipo string`, 'string') }}",
+            "jogos": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('jogos', `Adicone a lista de em array do jogos pedidos`, 'json') }}",
+            "id_chat": "={{ $('Batch Messages').item.json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "numero",
+              "displayName": "numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "jogos",
+              "displayName": "jogos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array"
+            },
+            {
+              "id": "id_chat",
+              "displayName": "id_chat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        624
+      ],
+      "id": "8ca8e51a-6c41-42ce-bc91-e0fe4452136f",
+      "name": "AI_gerar_link_pagamento"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b99f7efe-76a2-4bda-861b-e9593b8e1f8f",
+              "name": "message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "acaa3ba5-b999-450c-88b2-543de3b337e6",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "b1654092-4110-4e4a-b1f0-3be40d307a70",
+              "name": "user_id",
+              "value": "={{ $json.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "4ec8c0a6-0e8e-419d-a7cd-3c31e9e895af",
+              "name": "date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        160
+      ],
+      "id": "188330d0-667a-4164-a028-5f5b72826a5c",
+      "name": "Organiza as info para vim do tipo certo"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "waha_bolao_jhc",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3664,
+        368
+      ],
+      "id": "e2ba5d76-5060-4603-a2e4-5f0800c4ced6",
+      "name": "Webhook",
+      "webhookId": "5e5e77ef-59c7-4e2e-b35d-c4df45b59edb"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "IoZXNrb7wzILjwES",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/IoZXNrb7wzILjwES",
+          "cachedResultName": "Ver_jogos_ativos"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "numero": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('numero', `Coloque o numero`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "numero",
+              "displayName": "numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        624
+      ],
+      "id": "05f9b698-ab51-4430-8bf9-bc51e68d2a2f",
+      "name": "Ver_jogos_ativos"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4GLb8ucPZBXhGMux",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4GLb8ucPZBXhGMux",
+          "cachedResultName": "Chamar_jorge"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_chat": "={{ $('Batch Messages').item.json.session_id }}",
+            "Nome": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nome', `Coloque o nome`, 'string') }}"
+          },
+          "matchingColumns": [
+            "id_chat"
+          ],
+          "schema": [
+            {
+              "id": "id_chat",
+              "displayName": "id_chat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        624
+      ],
+      "id": "4c132191-2814-4411-a5cc-07a8441f78cd",
+      "name": "Chamar_jorge"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Roezvo-3sBqxqAj6XCplafxDvu4qMSrFi_-NtF-niXI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Roezvo-3sBqxqAj6XCplafxDvu4qMSrFi_-NtF-niXI/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id_chat",
+              "lookupValue": "={{ $json.body.payload.from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3216,
+        368
+      ],
+      "id": "2ee4c4ff-cf3c-42f6-b2a8-043a8b1fe8ed",
+      "name": "Verifica se esta na lista de espera",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "31520a93-31fe-4dfc-8428-7f2663d30216",
+              "leftValue": "={{ $json.id_chat }}",
+              "rightValue": "={{ $('Webhook').item.json.body.payload.from }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2992,
+        368
+      ],
+      "id": "5b23c58d-86e9-468d-a7e4-c4972148f4a6",
+      "name": "Verifica se o numero do cliente e o mesmo da lista de espera"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg",
+          "mode": "list",
+          "cachedResultName": "Mêmoria ia do bolão",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 899356205,
+          "mode": "list",
+          "cachedResultName": "Message Waithing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1z0DltAJ_ysMmfoMI6vbwXyEHkTS8t7WHXxkA94i8XAg/edit#gid=899356205"
+        }
+      },
+      "id": "e4f37cfc-8a0c-4664-af5d-4674e3165689",
+      "name": "Delete Row from Message Checkup1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        1760,
+        256
+      ],
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $('Batch Messages').item.json.session_id }}",
+        "text": "={{ $json.output.text }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1536,
+        112
+      ],
+      "id": "a1bc91c8-6342-46ac-b331-7da6c6340a08",
+      "name": "Para o usúario1",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $('Webhook').item.json.body.payload.from }}",
+        "text": "=Infelimente ouve um erro tente novamente.\n[K-TESTE]",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1328,
+        400
+      ],
+      "id": "f1e4759f-107c-4296-9449-3f37ff9b3c6a",
+      "name": "Envia messagem de erro1",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chats",
+        "operation": "Get Chat Message",
+        "session": "=default",
+        "chatId": "={{ $('Webhook').item.json.body.payload.from }}",
+        "messageId": "={{ $('Webhook').item.json.body.payload.id }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        -2736,
+        720
+      ],
+      "id": "cd702cc8-e69b-412e-9c1e-45959d4881cf",
+      "name": "Gets message by id",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "Transcreva este áudio exatamente como ele foi falado, em português brasileiro. E se for video ou imagem descreva.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -2320,
+        720
+      ],
+      "id": "49d2cfa8-5841-4e03-9ee5-6d986ed5a295",
+      "name": "Analyze audio",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0ZkcvCaJds7YqjCd",
+          "name": "AI JHC bolao"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.media.url.replace(\"localhost\", \"waha-bolao\") }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wahaApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2528,
+        720
+      ],
+      "id": "7924fb5b-d772-4eaf-8dfc-033a39330406",
+      "name": "Pega o audio no WAHA",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "227e99f3-b4b9-4f50-96d6-0247f4067b12",
+              "leftValue": "={{ $json.body.payload }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e85affdc-1f82-47b2-8181-1ce053330867",
+              "leftValue": "={{ $json.body.payload.from }}",
+              "rightValue": "=status@",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "23047376-b070-49fe-91a0-14a4f7db6289",
+              "leftValue": "={{ $json.body.payload.from }}",
+              "rightValue": "=@newsletter",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "eba486bb-a509-4e54-bf20-ceea66f96e01",
+              "leftValue": "={{ $json.body.payload._data.key.remoteJid }}",
+              "rightValue": "@g.us",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "9c83d9a0-fd1e-47e5-ae21-6989987d4fd2",
+              "leftValue": "={{ $json.body.payload.from }}",
+              "rightValue": "=5513997744672@c.us",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3440,
+        368
+      ],
+      "id": "37baede0-d2c9-4f1a-a00f-50714bf58771",
+      "name": "Verificando se é messagem"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $('Batch Messages').item.json.session_id }}",
+        "text": "={{ $('Verifica se teve erro').item.json.output.link }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        2000,
+        96
+      ],
+      "id": "25d189dd-61b9-466e-a46c-ad89febe4ab8",
+      "name": "Para o usúario",
+      "credentials": {
+        "wahaApi": {
+          "id": "D15jvRpoZ74YaLbV",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fd448307-e60a-4904-b106-0be7f1c5eb0a",
+              "leftValue": "={{ $('Verifica se teve erro').item.json.output.link }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1744,
+        112
+      ],
+      "id": "e8c337e7-74ae-4c17-bc5c-9477b7790f33",
+      "name": "Verifica se tem link de pagamenrto"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1FgrnhmyHY9I0nQ1SPX_iq1OetqjDwD_fLAwHI81h0eM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1FgrnhmyHY9I0nQ1SPX_iq1OetqjDwD_fLAwHI81h0eM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id_numero",
+              "lookupValue": "={{ $('Batch Messages').item.json.session_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        624
+      ],
+      "id": "6147daec-13a9-4d85-b572-fce832d9e80b",
+      "name": "Buscar_no_cadastro",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1FgrnhmyHY9I0nQ1SPX_iq1OetqjDwD_fLAwHI81h0eM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1FgrnhmyHY9I0nQ1SPX_iq1OetqjDwD_fLAwHI81h0eM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "0-Apostdores": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('0-Apostdores', `Coloque o nome do apostador`, 'string') }}",
+            "Numero": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Numero', `Coloque o numero`, 'string') }}",
+            "id_numero": "={{ $('Batch Messages').item.json.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "0-Apostdores",
+              "displayName": "0-Apostdores",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Numero",
+              "displayName": "Numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id_numero",
+              "displayName": "id_numero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "0-Apelido",
+              "displayName": "0-Apelido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        608
+      ],
+      "id": "4460613c-3dcd-493b-9955-ca888ffc3f07",
+      "name": "Marca_cadastro",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BGa6hVn2P93GgoWU",
+          "name": "AI bolao JHC"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "determina os campos": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Organiza as info para vim do tipo certo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "No Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What to do": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet1": {
+      "main": [
+        [
+          {
+            "node": "Atendente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Rows": {
+      "main": [
+        [
+          {
+            "node": "What to do",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch Messages": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se tem imagem ou audio": {
+      "main": [
+        [
+          {
+            "node": "Gets message by id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "determina os campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se teve erro": {
+      "main": [
+        [
+          {
+            "node": "Para o usúario1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Envia messagem de erro1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atendente": {
+      "main": [
+        [
+          {
+            "node": "Verifica se teve erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_jogo_no_banco": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI_gerar_link_pagamento": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza as info para vim do tipo certo": {
+      "main": [
+        [
+          {
+            "node": "Batch Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verificando se é messagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver_jogos_ativos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar_jorge": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se esta na lista de espera": {
+      "main": [
+        [
+          {
+            "node": "Verifica se o numero do cliente e o mesmo da lista de espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se o numero do cliente e o mesmo da lista de espera": {
+      "main": [
+        [
+          {
+            "node": "Verifica se tem imagem ou audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Para o usúario1": {
+      "main": [
+        [
+          {
+            "node": "Verifica se tem link de pagamenrto",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete Row from Message Checkup1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gets message by id": {
+      "main": [
+        [
+          {
+            "node": "Pega o audio no WAHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega o audio no WAHA": {
+      "main": [
+        [
+          {
+            "node": "Analyze audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze audio": {
+      "main": [
+        [
+          {
+            "node": "determina os campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificando se é messagem": {
+      "main": [
+        [
+          {
+            "node": "Verifica se esta na lista de espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Para o usúario": {
+      "main": [
+        []
+      ]
+    },
+    "Verifica se tem link de pagamenrto": {
+      "main": [
+        [
+          {
+            "node": "Para o usúario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Buscar_no_cadastro": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marca_cadastro": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c935ac7a-8cf7-4fe6-9fc2-84f4aa157596",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9743e2520f3d4401e4b202cc533b13a5176c66094c0da12e85cd4bd925f29ccc"
+  },
+  "id": "WqXUyJN2Je9wtr0o",
+  "tags": []
+}
